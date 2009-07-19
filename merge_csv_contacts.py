@@ -47,16 +47,8 @@ def parse_line(line):
 
 column_names = parse_line(rows[0])
 
-# contacts = {
-#     'John Doe': {
-#         'merged': A row of merged contact data,
-#         'rows': The rows the merged data came from
-#     },
-# }
-contacts = {} 
-
-unmodified_contacts = {} # {'John Doe': [row, row, row...]}
-untouchables = set() # Names.
+contacts = {} # {'name': data}
+unnamed_rows = []
 
 def process_row(row):
     values = parse_line(row)
@@ -68,52 +60,74 @@ def process_row(row):
     row_data = dict(zip(column_names, values))
     contact_name = row_data['Name']
     
-    if contact_name == '' or contact_name in untouchables:
-        unmodified_contacts.setdefault(contact_name, []).append(row_data)
+    if contact_name == '':
+        unnamed_rows.append(row_data)
     elif contact_name in contacts:
-        existing_info = contacts[contact_name]
-        merged_data = existing_info['merged']
-
-        # Store each row being merged so we can unmerge if rows conflict.
-        existing_info['rows'].append(row_data)
+        merged_data = contacts[contact_name]
 
         for col in column_names[1:]:
             merged_val = merged_data[col]
             row_val = row_data[col]
             if merged_val != row_val and merged_val != '' and row_val != '':
-                if col.find('Description') == -1:
-                    # It looks like all of my duplicates are either just numbers (from
-                    # my phone) or just email addresses (from my email). If I'm wrong,
-                    # print a notice...
-                    print ('%s has at least two values for %s: "%s" and "%s"' %
-                           (contact_name, col, merged_data[col], row_data[col]))
-                    # ... queue the unmerged rows to be printed...
-                    unmodified_contacts[contact_name] = existing_info['rows']
-                    # ... dequeue the merged row...
-                    del contacts[contact_name]
-                    # ... and don't try to merge this person anymore.
-                    untouchables.add(contact_name)
-                    return
-                else:
-                    # When GMail merges values with different descriptions, it looks
+                if 'Description' in col:
+                    # When Gmail merges values with different descriptions, it looks
                     # like it changes the description to 'Other'. Do that.
                     if merged_data[col] != row_data[col]:
                         merged_data[col] = 'Other'
                         continue
+                else:
+                    # ' ::: ' is used as the separator for multiple values.
+                    merged_data[col] = '%s ::: %s' % (merged_val, row_val)
 
             # One or none of the rows have a value for this column. Merge them.
             merged_data[col] = merged_data[col] or row_data[col]
     else:
-        contacts[contact_name] = {'merged': row_data, 'rows': [row_data]}
+        contacts[contact_name] = row_data
 
 for row in rows[1:]:
     process_row(row)
 
-unmerged_names = tuple(name for name in unmodified_contacts if name != '')
-if unmerged_names:
-    print "-----------"
-    print "The contacts with multiple values for a field were not merged, so you should merge them manually in GMail (http://lifehacker.com/5150139/merge-multiple-emails-to-one-contact-in-gmail). Here they are again:"
-    print ', '.join(unmerged_names)
+def process_emails(row_data):
+    """Remove duplicate email addresses and ensure that the 'E-mail' column has one
+       or zero emails."""
+    columns = 'E-mail', 'Section 1 - Email', 'Section 2 - Email'
+    email, sec_one, sec_two = (row_data[col] for col in columns)
+    overflow = set()
+
+    if email:
+        # Use the first email as the primary email and push any others to Section 1
+        col_emails = email.split(' ::: ')
+        row_data[columns[0]] = col_emails[0]
+        if len(col_emails) > 1:
+            overflow.update(col_emails[1:])
+
+    if sec_one:
+        col_emails = set(sec_one.split(' ::: '))
+        col_emails |= overflow
+        col_emails.discard(row_data[columns[0]]) # Remove email we've stored
+        row_data[columns[1]] = ' ::: '.join(col_emails)
+    else:
+        row_data[columns[1]] = ' ::: '.join(overflow)
+
+    if sec_two:
+        col_emails = set(sec_two.split(' ::: '))
+        col_emails.discard(row_data[columns[0]])
+        col_emails.difference_update(row_data[columns[1]].split(' ::: '))
+        row_data[columns[2]] = ' ::: '.join(col_emails)
+
+# This list doesn't include 'Email' because we deal with that in process_emails.
+SECTION_COLS = 'IM', 'Phone', 'Mobile', 'Pager', 'Fax', 'Company', 'Title', 'Other', 'Address'
+
+def remove_dupes(row_data):
+    for col in SECTION_COLS:
+        values = set()
+        for section in (1, 2):
+            key = 'Section %d - %s' % (section, col)
+            if row_data[key]:
+                sec_values = set(row_data[key].split(' ::: '))
+                sec_values -= values
+                row_data[key] = ' ::: '.join(sec_values)
+                values |= sec_values
 
 def row_to_string(row):
     try:
@@ -127,9 +141,11 @@ def row_to_string(row):
 with open(sys.argv[2], 'w') as output_file:
     output_file.write(row_to_string(column_names) + '\n')
 
-    for name in sorted(unmodified_contacts.keys()):
-        for row in unmodified_contacts[name]:
-            output_file.write(row_to_string(row) + '\n')
+    for row in unnamed_rows:
+        output_file.write(row_to_string(row) + '\n')
 
     for name in sorted(contacts.keys()):
-        output_file.write(row_to_string(contacts[name]['merged']) + '\n')
+        row = contacts[name]
+        process_emails(row)
+        remove_dupes(row)
+        output_file.write(row_to_string(row) + '\n')
