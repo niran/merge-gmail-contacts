@@ -2,11 +2,30 @@
 # Usage: ./merge_csv_contacts.py <source> <output filename>
 
 import sys
+import re
 
 with open(sys.argv[1], 'r') as original_file:
     rows = tuple(line for line in original_file)
 
-column_names = rows[0].strip().split(',')
+def parse_line(line):
+    values = []
+    last_index = 0
+    line = line.strip()
+
+    for match in re.finditer(r'"(.*?)"', line):
+        # The unprocessed part of the line before the quoted match is normal comma-
+        # separated values. Split it.
+        values.extend(line[last_index:match.start()].split(','))
+
+        values.append(match.group(1))
+        last_index = match.end()
+
+    # No more quoted values. Split the rest of the line.
+    values.extend(line[last_index:].split(','))
+
+    return values
+
+column_names = parse_line(rows[0])
 
 # contacts = {
 #     'John Doe': {
@@ -20,7 +39,7 @@ unmodified_contacts = {} # {'John Doe': [row, row, row...]}
 untouchables = set() # Names.
 
 def process_row(row):
-    values = row.strip().split(',')
+    values = parse_line(row)
 
     # Give empty values for trailing columns that were omitted so we can zip the
     # column names with the row.
