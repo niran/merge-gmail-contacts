@@ -8,7 +8,7 @@ Usage: `./merge_csv_contacts.py <source> <output filename>`
 
 #### Why would I want to use this?
 
-People have multiple email addresses, and Gmail doesn't do anything to help you to indicate that those people with the same name are actually the same person. You can [manually merge contacts][1], but that's no fun.
+People have multiple email addresses, and Gmail doesn't do anything to help you to indicate that those people with the same name are actually the same person. You can [manually merge contacts][1], but that's no fun. (This particular problem isn't completely automated by this script. See the caveat below.)
 
 [1]: http://lifehacker.com/5150139/merge-multiple-emails-to-one-contact-in-gmail
 
@@ -24,6 +24,10 @@ It's even worse when you've exported your contacts from your phone and imported 
 If you want to merge contacts from another application, [import your contacts into Gmail][2], follow the rest of these instructions, then export the merged contacts into a format your application can read (the export page will explain the formats if you aren't sure).
 
 [2]: http://mail.google.com/support/bin/answer.py?answer=12118&cbid=-1qlxpodsfyozq&src=cb&lev=answer
+
+#### Caveat
+
+As I mentioned before, my duplicates were mostly phone numbers that were separate from emails, so I was aiming to merge non-overlapping data into a single contact. If your duplicates are mostly people with multiple email addresses, the script will print out the contacts that are duplicates, but it won't actually merge those. It should be fairly simple to modify this script to handle that, or you can use the script just to help you identify the duplicates so you can merge them manually.
 
 #### License
 
