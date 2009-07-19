@@ -6,8 +6,7 @@ import sys
 with open(sys.argv[1], 'r') as original_file:
     rows = original_file.readlines()
 
-column_names = rows[0].split(',')
-column_names = [name.strip() for name in column_names]
+column_names = rows[0].strip().split(',')
 
 # contacts = {
 #     'John Doe': {
@@ -21,8 +20,7 @@ unmodified_contacts = {} # {'John Doe': [row, row, row...]}
 untouchables = set() # Names.
 
 def process_row(row):
-    values = row.split(',')
-    values = [value.strip() for value in values]
+    values = row.strip().split(',')
 
     # Give empty values for trailing columns that were omitted so we can zip the
     # column names with the row.
