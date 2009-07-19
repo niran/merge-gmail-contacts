@@ -4,7 +4,7 @@
 import sys
 
 with open(sys.argv[1], 'r') as original_file:
-    rows = original_file.readlines()
+    rows = tuple(line for line in original_file)
 
 column_names = rows[0].strip().split(',')
 
