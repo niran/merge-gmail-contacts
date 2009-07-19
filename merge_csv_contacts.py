@@ -97,13 +97,21 @@ if unmerged_names:
     print "The contacts with multiple values for a field were not merged, so you should merge them manually in GMail (http://lifehacker.com/5150139/merge-multiple-emails-to-one-contact-in-gmail). Here they are again:"
     print ', '.join(unmerged_names)
 
+def row_to_string(row):
+    try:
+        values = tuple(row[col] for col in column_names)
+    except TypeError:
+        values = row
+
+    quoted = ('"%s"' % value if value.find(',') != -1 else value for value in values)
+    return ','.join(quoted)
+
 with open(sys.argv[2], 'w') as output_file:
-    output_file.write(','.join(column_names) + '\n')
+    output_file.write(row_to_string(column_names) + '\n')
 
     for name in sorted(unmodified_contacts.keys()):
         for row in unmodified_contacts[name]:
-            output_file.write(','.join(row[col] for col in column_names) + '\n')
+            output_file.write(row_to_string(row) + '\n')
 
     for name in sorted(contacts.keys()):
-        output_file.write(','.join(contacts[name]['merged'][col] for
-                                   col in column_names) + '\n')
+        output_file.write(row_to_string(contacts[name]['merged']) + '\n')
