@@ -22,9 +22,6 @@
 import sys
 import re
 
-with open(sys.argv[1], 'r') as original_file:
-    rows = tuple(line for line in original_file)
-
 def parse_line(line):
     values = []
     last_index = 0
@@ -44,11 +41,6 @@ def parse_line(line):
         values.extend(line[last_index:].split(','))
 
     return values
-
-column_names = parse_line(rows[0])
-
-contacts = {} # {'name': data}
-unnamed_rows = []
 
 def process_row(row):
     values = parse_line(row)
@@ -83,9 +75,6 @@ def process_row(row):
             merged_data[col] = merged_data[col] or row_data[col]
     else:
         contacts[contact_name] = row_data
-
-for row in rows[1:]:
-    process_row(row)
 
 def process_emails(row_data):
     """Remove duplicate email addresses and ensure that the 'E-mail' column has one
@@ -137,6 +126,21 @@ def row_to_string(row):
 
     quoted = ('"%s"' % value if value.find(',') != -1 else value for value in values)
     return ','.join(quoted)
+
+
+################
+
+
+with open(sys.argv[1], 'r') as original_file:
+    rows = tuple(line for line in original_file)
+
+column_names = parse_line(rows[0])
+
+contacts = {} # {'name': data}
+unnamed_rows = []
+
+for row in rows[1:]:
+    process_row(row)
 
 with open(sys.argv[2], 'w') as output_file:
     output_file.write(row_to_string(column_names) + '\n')
