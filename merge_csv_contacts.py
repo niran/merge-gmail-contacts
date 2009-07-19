@@ -12,16 +12,18 @@ def parse_line(line):
     last_index = 0
     line = line.strip()
 
-    for match in re.finditer(r'"(.*?)"', line):
+    for match in re.finditer(r'"(.*?)",?', line):
         # The unprocessed part of the line before the quoted match is normal comma-
         # separated values. Split it.
-        values.extend(line[last_index:match.start()].split(','))
+        if match.start() > last_index:
+            values.extend(line[last_index:match.start()].split(','))
 
         values.append(match.group(1))
         last_index = match.end()
 
     # No more quoted values. Split the rest of the line.
-    values.extend(line[last_index:].split(','))
+    if len(line) > last_index:
+        values.extend(line[last_index:].split(','))
 
     return values
 
