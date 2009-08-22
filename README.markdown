@@ -14,12 +14,17 @@ People have multiple email addresses, and Gmail doesn't do anything to help you 
 
 It's even worse when you've exported your contacts from your phone and imported them into Gmail, only to get a separate phone number contact for each person. This particular annoyance inspired this script.
 
+#### You should probably use the Mac Address Book instead.
+
+Apparently the Mac Address Book has a contact merging feature. If you have access to a Mac, export your contacts from Google, import them into Address Book, then export them back to Google. If you don't have access to a Mac, keep reading.
+
 #### Instructions
 
 1. Export your contacts from Gmail.
-2. Run merge_csv_contacts.py on the file you saved.
-3. Open the output file in a spreadsheet program, such as OpenOffice.org Calc or Microsoft Excel, and look over it to make sure it looks reasonable. **You can't undo a contact import**, so if something's wrong, it'll be tedious to fix afterward.
-4. Import the output file into GMail, assigning a new group to those contacts. (The new group is just to help you deal with any oddities that result from the import. Once you're satisfied, you can remove the group.) GMail will notice that your existing contacts have the same email addresses, etc, and it will merge the new ones with the duplicates, leaving one glorious entry per person.
+2. Check the first line of the exported file. If you see fields like "Section 1 - Email", you're fine. If you see fields like "E-mail 1 - Value", this won't work. See [Issue 1](http://github.com/niran/merge-gmail-contacts/issues/closed/#issue/1) for more info.
+3. Run merge_csv_contacts.py on the file you saved.
+4. Open the output file in a spreadsheet program, such as OpenOffice.org Calc or Microsoft Excel, and look over it to make sure it looks reasonable. **You can't undo a contact import**, so if something's wrong, it'll be tedious to fix afterward.
+5. Import the output file into GMail, assigning a new group to those contacts. (The new group is just to help you deal with any oddities that result from the import. Once you're satisfied, you can remove the group.) GMail will notice that your existing contacts have the same email addresses, etc, and it will merge the new ones with the duplicates, leaving one glorious entry per person.
 
 If you want to merge contacts from another application, [import your contacts into Gmail][2], follow the rest of these instructions, then export the merged contacts into a format your application can read (the export page will explain the formats if you aren't sure).
 
