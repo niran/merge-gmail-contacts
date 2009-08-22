@@ -16,7 +16,7 @@ It's even worse when you've exported your contacts from your phone and imported 
 
 #### You should probably use the Mac Address Book instead.
 
-Apparently the Mac Address Book has a contact merging feature. If you have access to a Mac, export your contacts from Google, import them into Address Book, then export them back to Google. If you don't have access to a Mac, keep reading.
+Apparently the Mac Address Book has a contact merging feature. If you have access to a Mac, export your contacts from Google, import them into Address Book, merge your contacts, then export them back to Google. If you don't have access to a Mac, keep reading.
 
 #### Instructions
 
